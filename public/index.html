@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MailFlow • Gmail SMTP Test</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f4f6f9;color:#1b2638;font:16px system-ui,sans-serif;padding:20px}main{width:min(100%,480px);background:white;border-radius:18px;box-shadow:0 12px 40px #1c375219;padding:28px}h1{font-size:24px;margin:0 0 6px}p{line-height:1.5;color:#52617a}label{font-size:14px;font-weight:700;display:block;margin:24px 0 7px}input{width:100%;border:1px solid #aeb8c7;border-radius:9px;padding:13px 14px;font-size:16px}button{background:#245fda;color:white;border:0;border-radius:9px;padding:12px 15px;cursor:pointer;font-size:15px;font-weight:650}button.secondary{background:#eaf0fb;color:#1a4dba}button:disabled{opacity:.55;cursor:wait}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}#result{margin-top:20px;line-height:1.5;font-size:14px;white-space:pre-wrap}.muted{font-size:13px;color:#66758e}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>MailFlow — Gmail SMTP Test</h1>
+    <p>Safely test Gmail App Password authentication without changing your existing MailFlow deployment.</p>
+    <label for="secret">Your TEST_SECRET (not your Gmail App Password)</label>
+    <input type="password" id="secret" autocomplete="off" placeholder="Enter the private test secret"/>
+    <div class="actions">
+      <button class="secondary" id="verify">1. Verify Gmail login</button>
+      <button id="send">2. Send to test inbox</button>
+    </div>
+    <div id="result" role="status" aria-live="polite"></div>
+    <p class="muted">The Gmail address, App Password and recipient are stored only in Vercel environment variables. This page never asks for the Gmail App Password. Test sends go to one fixed inbox.</p>
+  </main>
+  <script>
+    const status = document.querySelector('#result');
+    const buttons = [...document.querySelectorAll('button')];
+    async function execute(action){
+      const secret=document.querySelector('#secret').value;
+      if(!secret){status.textContent='Enter your private TEST_SECRET first.';return;}
+      buttons.forEach(b=>b.disabled=true);
+      status.textContent='Contacting Gmail...';
+      try{
+        const response=await fetch('/api/test-smtp',{
+          method:'POST',headers:{'Content-Type':'application/json','x-test-secret':secret},
+          body:JSON.stringify({action})
+        });
+        const data=await response.json();
+        status.textContent=(data.ok?'✓ ':'✗ ')+(data.message||'Unknown result');
+      }catch(error){status.textContent='Unable to reach the SMTP test function. Check your deployment.';}
+      finally{buttons.forEach(b=>b.disabled=false);}
+    }
+    document.querySelector('#verify').onclick=()=>execute('verify');
+    document.querySelector('#send').onclick=()=>execute('send');
+  </script>
+</body>
+</html>

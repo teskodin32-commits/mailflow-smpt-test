@@ -1,0 +1,8 @@
+{
+  "name": "mailflow-free-smtp-test",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Isolated Gmail SMTP test for a personal, non-commercial MailFlow evaluation",
+  "engines": { "node": ">=20" },
+  "dependencies": { "nodemailer": "^7.0.0" }
+}
